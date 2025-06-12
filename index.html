@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2F80ED" />
+  <title>Step Counter App</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #56CCF2, #2F80ED);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: white;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      border-radius: 2rem;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    #stepCount {
+      font-size: 3rem;
+      margin: 1rem 0;
+    }
+    button {
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 1rem;
+      background-color: #ffffff;
+      color: #2F80ED;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+    button:hover {
+      background-color: #e6e6e6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Step Counter</h1>
+    <div id="stepCount">0</div>
+    <p>Start walking and allow motion permission!</p>
+    <button onclick="resetSteps()">Reset</button>
+  </div>
+
+  <script>
+    let steps = 0;
+
+    if ('DeviceMotionEvent' in window) {
+      let lastAcc = 0;
+      window.addEventListener('devicemotion', function(event) {
+        const acc = event.accelerationIncludingGravity;
+        const totalAcc = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+        if (totalAcc > 12 && Math.abs(totalAcc - lastAcc) > 2) {
+          steps++;
+          document.getElementById('stepCount').innerText = steps;
+        }
+        lastAcc = totalAcc;
+      });
+    } else {
+      alert('Step counting not supported on this device.');
+    }
+
+    function resetSteps() {
+      steps = 0;
+      document.getElementById('stepCount').innerText = steps;
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker registered', reg))
+          .catch(err => console.error('Service Worker registration failed', err));
+      });
+    }
+  </script>
+</body>
+</html>
