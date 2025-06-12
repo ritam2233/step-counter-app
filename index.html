@@ -7,45 +7,68 @@
   <title>Step Counter App</title>
   <link rel="manifest" href="manifest.json">
   <style>
+    :root {
+      --light-bg: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+      --dark-bg: linear-gradient(135deg, #2c3e50, #4ca1af);
+      --primary-color: #2F80ED;
+      --secondary-color: #56CCF2;
+      --light-text: #ffffff;
+      --dark-text: #e0e0e0;
+    }
+
     body {
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #56CCF2, #2F80ED);
+      background: var(--light-bg);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
-      color: white;
+      color: var(--primary-color);
+      transition: background 0.3s, color 0.3s;
     }
+
+    body.dark {
+      background: var(--dark-bg);
+      color: var(--light-text);
+    }
+
     .container {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.2);
       padding: 2rem;
       border-radius: 2rem;
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
       text-align: center;
       width: 90%;
       max-width: 400px;
+      backdrop-filter: blur(10px);
     }
+
     h1 {
       margin-bottom: 1rem;
     }
+
     #stepCount {
       font-size: 3rem;
       margin: 1rem 0;
+      transition: all 0.3s ease;
     }
+
     button {
       padding: 0.8rem 2rem;
       font-size: 1rem;
       border: none;
       border-radius: 1rem;
-      background-color: #ffffff;
-      color: #2F80ED;
+      background-color: var(--light-text);
+      color: var(--primary-color);
       cursor: pointer;
       font-weight: bold;
-      margin-top: 1rem;
+      margin: 0.5rem;
+      transition: all 0.3s ease;
     }
+
     button:hover {
       background-color: #e6e6e6;
     }
@@ -57,20 +80,35 @@
     <div id="stepCount">0</div>
     <p>Start walking and allow motion permission!</p>
     <button onclick="resetSteps()">Reset</button>
+    <button onclick="toggleTheme()">Toggle Theme</button>
   </div>
 
   <script>
     let steps = 0;
+    let lastStepTime = Date.now();
 
     if ('DeviceMotionEvent' in window) {
       let lastAcc = 0;
+      let stepDetected = false;
+      let lastDirection = 0;
+
       window.addEventListener('devicemotion', function(event) {
         const acc = event.accelerationIncludingGravity;
         const totalAcc = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
-        if (totalAcc > 12 && Math.abs(totalAcc - lastAcc) > 2) {
+
+        const now = Date.now();
+        const threshold = 12;
+        const timeGap = 400;
+
+        if (totalAcc > threshold && !stepDetected && Math.abs(totalAcc - lastAcc) > 2 && now - lastStepTime > timeGap) {
+          stepDetected = true;
+          lastStepTime = now;
           steps++;
           document.getElementById('stepCount').innerText = steps;
+        } else if (totalAcc < 9) {
+          stepDetected = false;
         }
+
         lastAcc = totalAcc;
       });
     } else {
@@ -80,6 +118,10 @@
     function resetSteps() {
       steps = 0;
       document.getElementById('stepCount').innerText = steps;
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
     }
 
     if ('serviceWorker' in navigator) {
